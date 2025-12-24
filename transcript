@@ -1,0 +1,502 @@
+# //  Questa Sim-64
+# //  Version 10.7b_1 linux_x86_64 Jul 26 2018
+# //
+# //  Copyright 1991-2018 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  QuestaSim and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# source scripts/start.tcl
+# vsim axi_hyper_tb -t 1ps -voptargs="+acc" -classdebug 
+# Start time: 23:43:27 on Dec 24,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Warning: /scratch2/chaoliang/axi-tmu-eval/hyperbus/test/dut_if.sv(202): $sdf_annotate instance pathname cannot be resolved.
+# ** Note: (vopt-143) Recognized 1 FSM in module "hyperbus_phy(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "hyperbus_w2phy(fast)".
+# ** Note: (vopt-143) Recognized 2 FSMs in module "axi_atop_filter(fast)".
+# ** Note: (vopt-143) Recognized 2 FSMs in module "axi_atop_filter(fast__1)".
+# ** Note: (vopt-143) Recognized 2 FSMs in module "axi_atop_filter(fast__2)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "axi_serializer(fast)".
+# ** Note: (vopt-143) Recognized 1 FSM in module "hyperbus_phy2r(fast)".
+# ** Warning: /scratch2/chaoliang/axi-tmu-eval/hyperbus/src/cheshire_idma_wrap.sv(136): (vopt-2685) [TFMPC] - Too few port connections for 'i_axi_translate'.  Expected 8, found 7.
+# ** Warning: /scratch2/chaoliang/axi-tmu-eval/hyperbus/src/cheshire_idma_wrap.sv(136): (vopt-2718) [TFMPC] - Missing connection for port 'reg_id_o'.
+# Loading sv_std.std
+# Loading work.AXI_LITE_DV(fast)
+# Loading work.AXI_BUS_DV(fast)
+# Loading work.rand_id_queue_pkg(fast)
+# Loading work.axi_pkg(fast)
+# Loading work.axi_test(fast)
+# Loading work.axi_hyper_tb(fast)
+# Loading work.clk_rst_gen(fast)
+# Loading work.REG_BUS(fast)
+# Loading work.AXI_BUS_DV(fast)
+# Loading work.cf_math_pkg(fast)
+# Loading work.axi_xbar_intf(fast)
+# Loading work.axi_xbar(fast)
+# Loading work.axi_xbar_unmuxed(fast)
+# Loading work.addr_decode(fast)
+# Loading work.addr_decode_dync(fast)
+# Loading work.axi_demux(fast)
+# Loading work.spill_register(fast)
+# Loading work.spill_register_flushable(fast)
+# Loading work.spill_register(fast__1)
+# Loading work.spill_register_flushable(fast__1)
+# Loading work.spill_register(fast__2)
+# Loading work.spill_register_flushable(fast__2)
+# Loading work.spill_register(fast__3)
+# Loading work.spill_register_flushable(fast__3)
+# Loading work.spill_register(fast__4)
+# Loading work.spill_register_flushable(fast__4)
+# Loading work.spill_register(fast__5)
+# Loading work.spill_register_flushable(fast__5)
+# Loading work.axi_demux_simple(fast)
+# Loading work.axi_demux_id_counters(fast)
+# Loading work.delta_counter(fast)
+# Loading work.counter(fast)
+# Loading work.rr_arb_tree(fast)
+# Loading work.lzc(fast)
+# Loading work.axi_err_slv(fast)
+# Loading work.axi_atop_filter(fast)
+# Loading work.stream_register(fast)
+# Loading work.fifo_v3(fast)
+# Loading work.fifo_v3(fast__1)
+# Loading work.fifo_v3(fast__2)
+# Loading work.counter(fast__1)
+# Loading work.delta_counter(fast__1)
+# Loading work.axi_demux(fast__1)
+# Loading work.spill_register(fast__6)
+# Loading work.spill_register_flushable(fast__6)
+# Loading work.spill_register(fast__7)
+# Loading work.spill_register_flushable(fast__7)
+# Loading work.spill_register(fast__8)
+# Loading work.spill_register_flushable(fast__8)
+# Loading work.spill_register(fast__9)
+# Loading work.spill_register_flushable(fast__9)
+# Loading work.spill_register(fast__10)
+# Loading work.spill_register_flushable(fast__10)
+# Loading work.axi_demux_simple(fast__1)
+# Loading work.axi_err_slv(fast__1)
+# Loading work.axi_atop_filter(fast__1)
+# Loading work.fifo_v3(fast__3)
+# Loading work.axi_multicut(fast)
+# Loading work.axi_cut(fast)
+# Loading work.spill_register(fast__11)
+# Loading work.spill_register_flushable(fast__11)
+# Loading work.spill_register(fast__12)
+# Loading work.spill_register_flushable(fast__12)
+# Loading work.spill_register(fast__13)
+# Loading work.spill_register_flushable(fast__13)
+# Loading work.spill_register(fast__14)
+# Loading work.spill_register_flushable(fast__14)
+# Loading work.spill_register(fast__15)
+# Loading work.spill_register_flushable(fast__15)
+# Loading work.axi_multicut(fast__1)
+# Loading work.axi_cut(fast__1)
+# Loading work.spill_register(fast__16)
+# Loading work.spill_register_flushable(fast__16)
+# Loading work.spill_register(fast__17)
+# Loading work.spill_register_flushable(fast__17)
+# Loading work.spill_register(fast__18)
+# Loading work.spill_register_flushable(fast__18)
+# Loading work.spill_register(fast__19)
+# Loading work.spill_register_flushable(fast__19)
+# Loading work.spill_register(fast__20)
+# Loading work.spill_register_flushable(fast__20)
+# Loading work.axi_multicut(fast__2)
+# Loading work.axi_cut(fast__2)
+# Loading work.spill_register(fast__21)
+# Loading work.spill_register_flushable(fast__21)
+# Loading work.spill_register(fast__22)
+# Loading work.spill_register_flushable(fast__22)
+# Loading work.spill_register(fast__23)
+# Loading work.spill_register_flushable(fast__23)
+# Loading work.spill_register(fast__24)
+# Loading work.spill_register_flushable(fast__24)
+# Loading work.spill_register(fast__25)
+# Loading work.spill_register_flushable(fast__25)
+# Loading work.axi_multicut(fast__3)
+# Loading work.axi_cut(fast__3)
+# Loading work.spill_register(fast__26)
+# Loading work.spill_register_flushable(fast__26)
+# Loading work.spill_register(fast__27)
+# Loading work.spill_register_flushable(fast__27)
+# Loading work.spill_register(fast__28)
+# Loading work.spill_register_flushable(fast__28)
+# Loading work.spill_register(fast__29)
+# Loading work.spill_register_flushable(fast__29)
+# Loading work.spill_register(fast__30)
+# Loading work.spill_register_flushable(fast__30)
+# Loading work.axi_multicut(fast__4)
+# Loading work.axi_cut(fast__4)
+# Loading work.spill_register(fast__31)
+# Loading work.spill_register_flushable(fast__31)
+# Loading work.spill_register(fast__32)
+# Loading work.spill_register_flushable(fast__32)
+# Loading work.spill_register(fast__33)
+# Loading work.spill_register_flushable(fast__33)
+# Loading work.spill_register(fast__34)
+# Loading work.spill_register_flushable(fast__34)
+# Loading work.spill_register(fast__35)
+# Loading work.spill_register_flushable(fast__35)
+# Loading work.axi_multicut(fast__5)
+# Loading work.axi_cut(fast__5)
+# Loading work.spill_register(fast__36)
+# Loading work.spill_register_flushable(fast__36)
+# Loading work.spill_register(fast__37)
+# Loading work.spill_register_flushable(fast__37)
+# Loading work.spill_register(fast__38)
+# Loading work.spill_register_flushable(fast__38)
+# Loading work.spill_register(fast__39)
+# Loading work.spill_register_flushable(fast__39)
+# Loading work.spill_register(fast__40)
+# Loading work.spill_register_flushable(fast__40)
+# Loading work.axi_mux(fast)
+# Loading work.axi_id_prepend(fast)
+# Loading work.axi_id_prepend(fast__1)
+# Loading work.rr_arb_tree(fast__1)
+# Loading work.lzc(fast__1)
+# Loading work.fifo_v3(fast__4)
+# Loading work.spill_register(fast__41)
+# Loading work.spill_register_flushable(fast__41)
+# Loading work.spill_register(fast__42)
+# Loading work.spill_register_flushable(fast__42)
+# Loading work.spill_register(fast__43)
+# Loading work.spill_register_flushable(fast__43)
+# Loading work.rr_arb_tree(fast__2)
+# Loading work.spill_register(fast__44)
+# Loading work.spill_register_flushable(fast__44)
+# Loading work.spill_register(fast__45)
+# Loading work.spill_register_flushable(fast__45)
+# Loading work.axi_mux(fast__1)
+# Loading work.axi_id_prepend(fast__2)
+# Loading work.axi_id_prepend(fast__3)
+# Loading work.rr_arb_tree(fast__3)
+# Loading work.spill_register(fast__46)
+# Loading work.spill_register_flushable(fast__46)
+# Loading work.spill_register(fast__47)
+# Loading work.spill_register_flushable(fast__47)
+# Loading work.spill_register(fast__48)
+# Loading work.spill_register_flushable(fast__48)
+# Loading work.rr_arb_tree(fast__4)
+# Loading work.spill_register(fast__49)
+# Loading work.spill_register_flushable(fast__49)
+# Loading work.spill_register(fast__50)
+# Loading work.spill_register_flushable(fast__50)
+# Loading work.axi_mux(fast__2)
+# Loading work.axi_id_prepend(fast__4)
+# Loading work.axi_id_prepend(fast__5)
+# Loading work.rr_arb_tree(fast__5)
+# Loading work.spill_register(fast__51)
+# Loading work.spill_register_flushable(fast__51)
+# Loading work.spill_register(fast__52)
+# Loading work.spill_register_flushable(fast__52)
+# Loading work.spill_register(fast__53)
+# Loading work.spill_register_flushable(fast__53)
+# Loading work.rr_arb_tree(fast__6)
+# Loading work.spill_register(fast__54)
+# Loading work.spill_register_flushable(fast__54)
+# Loading work.spill_register(fast__55)
+# Loading work.spill_register_flushable(fast__55)
+# Loading work.idma_pkg(fast)
+# Loading work.cheshire_idma_wrap(fast)
+# Loading work.axi_to_reg_v2(fast)
+# Loading work.axi_to_detailed_mem(fast)
+# Loading work.stream_mux(fast)
+# Loading work.stream_fork(fast)
+# Loading work.stream_fifo(fast)
+# Loading work.fifo_v3(fast__5)
+# Loading work.stream_fifo(fast__1)
+# Loading work.fifo_v3(fast__6)
+# Loading work.mem_stream_to_banks_detailed(fast)
+# Loading work.stream_fifo(fast__2)
+# Loading work.fifo_v3(fast__7)
+# Loading work.stream_fifo(fast__3)
+# Loading work.fifo_v3(fast__8)
+# Loading work.stream_fifo(fast__4)
+# Loading work.fifo_v3(fast__9)
+# Loading work.stream_join(fast)
+# Loading work.stream_join_dynamic(fast)
+# Loading work.stream_fork_dynamic(fast)
+# Loading work.stream_fork(fast__1)
+# Loading work.spill_register(fast__56)
+# Loading work.spill_register_flushable(fast__56)
+# Loading work.spill_register(fast__57)
+# Loading work.spill_register_flushable(fast__57)
+# Loading work.periph_to_reg(fast)
+# Loading work.reg_demux(fast)
+# Loading work.spill_register(fast__58)
+# Loading work.spill_register_flushable(fast__58)
+# Loading work.spill_register(fast__59)
+# Loading work.spill_register_flushable(fast__59)
+# Loading work.periph_to_reg(fast__1)
+# Loading work.reg_demux(fast__1)
+# Loading work.reg_mux(fast)
+# Loading work.stream_arbiter(fast)
+# Loading work.stream_arbiter_flushable(fast)
+# Loading work.rr_arb_tree(fast__7)
+# Loading work.idma_reg64_1d_reg_pkg(fast)
+# Loading work.idma_reg64_1d(fast)
+# Loading work.idma_reg64_1d_reg_top(fast)
+# Loading work.prim_subreg(fast)
+# Loading work.prim_subreg_arb(fast)
+# Loading work.prim_subreg(fast__1)
+# Loading work.prim_subreg_arb(fast__1)
+# Loading work.prim_subreg_ext(fast)
+# Loading work.prim_subreg_ext(fast__1)
+# Loading work.prim_subreg(fast__2)
+# Loading work.prim_subreg_arb(fast__2)
+# Loading work.rr_arb_tree(fast__8)
+# Loading work.stream_fifo_optimal_wrap(fast__5)
+# Loading work.spill_register_flushable(fast__60)
+# Loading work.idma_transfer_id_gen(fast)
+# Loading work.idma_backend_rw_axi(fast)
+# Loading work.idma_legalizer_rw_axi(fast)
+# Loading work.idma_legalizer_page_splitter(fast)
+# Loading work.stream_fifo_optimal_wrap(fast)
+# Loading work.stream_fifo(fast__5)
+# Loading work.fifo_v3(fast__10)
+# Loading work.stream_fifo_optimal_wrap(fast__1)
+# Loading work.stream_fifo(fast__6)
+# Loading work.fifo_v3(fast__11)
+# Loading work.fall_through_register(fast)
+# Loading work.fifo_v3(fast__12)
+# Loading work.stream_fifo_optimal_wrap(fast__2)
+# Loading work.stream_fifo(fast__7)
+# Loading work.fifo_v3(fast__13)
+# Loading work.idma_transport_layer_rw_axi(fast)
+# Loading work.idma_axi_read(fast)
+# Loading work.idma_dataflow_element(fast)
+# Loading work.passthrough_stream_fifo(fast)
+# Loading work.idma_axi_write(fast)
+# Loading work.idma_channel_coupler(fast)
+# Loading work.stream_fifo_optimal_wrap(fast__3)
+# Loading work.stream_fifo(fast__8)
+# Loading work.fifo_v3(fast__14)
+# Loading work.stream_fifo_optimal_wrap(fast__4)
+# Loading work.stream_fifo(fast__9)
+# Loading work.fifo_v3(fast__15)
+# Loading work.fall_through_register(fast__1)
+# Loading work.fifo_v3(fast__16)
+# Loading work.axi_rw_join(fast)
+# Loading work.axi_sim_mem(fast)
+# Loading work.dut_if(fast)
+# Loading work.axi_chan_logger(fast)
+# Loading work.hyperbus_pkg(fast)
+# Loading work.hyperbus(fast)
+# Loading work.hyperbus_cfg_regs(fast)
+# Loading work.hyperbus_axi(fast)
+# Loading work.axi_fifo(fast)
+# Loading work.fifo_v3(fast__17)
+# Loading work.fifo_v3(fast__18)
+# Loading work.fifo_v3(fast__19)
+# Loading work.fifo_v3(fast__20)
+# Loading work.fifo_v3(fast__21)
+# Loading work.axi_atop_filter(fast__2)
+# Loading work.axi_serializer(fast)
+# Loading work.fifo_v3(fast__22)
+# Loading work.rr_arb_tree(fast__9)
+# Loading work.spill_register(fast__60)
+# Loading work.spill_register_flushable(fast__61)
+# Loading work.addr_decode(fast__1)
+# Loading work.addr_decode_dync(fast__1)
+# Loading work.hyperbus_phy2r(fast)
+# Loading work.stream_fifo(fast__10)
+# Loading work.fifo_v3(fast__23)
+# Loading work.hyperbus_w2phy(fast)
+# Loading work.hyperbus_phy_if(fast)
+# Loading work.hyperbus_phy(fast)
+# Loading work.hyperbus_trx(fast)
+# Loading work.hyperbus_clock_diff_out(fast)
+# Loading work.tc_clk_gating(fast)
+# Loading work.tc_clk_inverter(fast)
+# Loading work.hyperbus_ddr_out(fast)
+# Loading work.tc_clk_mux2(fast)
+# Loading work.hyperbus_delay(fast)
+# Loading work.configurable_delay(fast)
+# Loading work.cdc_fifo_gray(fast)
+# Loading work.cdc_fifo_gray_src(fast)
+# Loading work.sync(fast)
+# Loading work.gray_to_binary(fast)
+# Loading work.binary_to_gray(fast)
+# Loading work.cdc_fifo_gray_dst(fast)
+# Loading work.spill_register(fast__61)
+# Loading work.spill_register_flushable(fast__62)
+# Loading work.cdc_2phase(fast)
+# Loading work.cdc_2phase_src(fast)
+# Loading work.cdc_2phase_dst(fast)
+# Loading work.cdc_2phase(fast__1)
+# Loading work.cdc_2phase_src(fast__1)
+# Loading work.cdc_2phase_dst(fast__1)
+# Loading work.cdc_fifo_gray(fast__1)
+# Loading work.cdc_fifo_gray_src(fast__1)
+# Loading work.gray_to_binary(fast__1)
+# Loading work.binary_to_gray(fast__1)
+# Loading work.cdc_fifo_gray_dst(fast__1)
+# Loading work.spill_register(fast__62)
+# Loading work.spill_register_flushable(fast__63)
+# Loading work.cdc_fifo_gray(fast__2)
+# Loading work.cdc_fifo_gray_src(fast__2)
+# Loading work.cdc_fifo_gray_dst(fast__2)
+# Loading work.spill_register(fast__63)
+# Loading work.spill_register_flushable(fast__64)
+# Loading work.hyperbus_clk_gen(fast)
+# Loading work.s27ks0641(fast)
+# Loading work.BUFFERs27ks0641(fast)
+# Loading work.pad_functional_pd(fast)
+# Loading work.AXI_BUS(fast)
+# Loading work.AXI_BUS(fast__1)
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# File was opened successfully : -2147483645
+# ** Note: (vsim-3587) SDF Backannotation Successfully Completed.
+#    Time: 0 ps  Iteration: 0  Region: /axi_hyper_tb/i_dut_if/sdf_annotation[0]/sdf_annotation[0]
+# Mem (          0,          0)
+# ===========================================
+# =     CPU->iDMA regs + iDMA->xbar test     =
+# ===========================================
+# SRAM     : 0x00000000 - 0x0000ffff
+# HyperRAM : 0x80000000 - 0x8fffffff
+# iDMA regs: 0x01000000 - 0x01000fff
+# ===========================================
+# 
+# Transfer started. next_id=0
+# Transfer complete after 1 polls (done_id=0)
+# ** Note: $finish    : /scratch2/chaoliang/axi-tmu-eval/hyperbus/test/axi_hyper_tb.sv(427)
+#    Time: 1445 ns  Iteration: 0  Instance: /axi_hyper_tb
+# 1
+# Break in NamedBeginStat proc_sim at /scratch2/chaoliang/axi-tmu-eval/hyperbus/test/axi_hyper_tb.sv line 427
+add wave -position insertpoint sim:/axi_hyper_tb/i_idma/*
+# End time: 23:44:51 on Dec 24,2025, Elapsed time: 0:01:24
+# Errors: 0, Warnings: 3, Suppressed Warnings: 11
