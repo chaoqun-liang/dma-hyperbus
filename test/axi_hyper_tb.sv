@@ -184,6 +184,37 @@ module axi_hyper_tb
     .default_mst_port_i    ( '0      )
   );
 
+  // Convert AXI_BUS interface to req/rsp structs for TMU
+  xbar_mst_req_t hyper_req_pre_tmu;   // From xbar to TMU
+  xbar_mst_rsp_t hyper_rsp_pre_tmu;   // From TMU to xbar
+
+  xbar_mst_req_t hyper_req_post_tmu;  // From TMU to HyperBus
+  xbar_mst_rsp_t hyper_rsp_post_tmu;  // From HyperBus to TMU
+
+  // Connect xbar slave port to pre-TMU structs
+  `AXI_ASSIGN_TO_REQ(hyper_req_pre_tmu, slave[1])
+  `AXI_ASSIGN_FROM_RESP(slave[1], hyper_rsp_pre_tmu)
+
+  // TODO: Insert TMU here
+  //   Input:  hyper_req_pre_tmu, hyper_rsp_post_tmu
+  //   Output: hyper_req_post_tmu, hyper_rsp_pre_tmu
+
+  // For now, bypass TMU (passthrough)
+  assign hyper_req_post_tmu = hyper_req_pre_tmu;
+  assign hyper_rsp_pre_tmu = hyper_rsp_post_tmu;
+
+  // Create AXI_BUS_DV interface for HyperBus DUT
+  AXI_BUS_DV #(
+    .AXI_ADDR_WIDTH ( TbAxiAddrWidth ),
+    .AXI_DATA_WIDTH ( TbAxiDataWidth ),
+    .AXI_ID_WIDTH   ( XbarIdWidthMstPorts ),
+    .AXI_USER_WIDTH ( TbAxiUserWidth )
+  ) hyper_axi_dv (clk);
+
+  // Convert post-TMU structs to AXI_BUS_DV for dut_if
+  `AXI_ASSIGN_FROM_REQ(hyper_axi_dv, hyper_req_post_tmu)
+  `AXI_ASSIGN_TO_RESP(hyper_rsp_post_tmu, hyper_axi_dv)
+
   // -----------------------
   // iDMA wrapper
   // -----------------------
@@ -285,7 +316,7 @@ module axi_hyper_tb
     .clk_i      ( clk         ),
     .rst_ni     ( rst_n       ),
     .end_sim_i  ( end_of_sim  ),
-    .axi_slv_if ( slave[1]    ),
+    .axi_slv_if ( hyper_axi_dv    ),
     .reg_slv_if ( hyper_reg_bus )
   );
 
@@ -499,13 +530,8 @@ module axi_hyper_tb
   // ============================================
   // Main Stress Test
   // ============================================
-  initial begin : proc_sim
-    cpu_axi_driver_t cpu_drv;
-    int poll_cycles;
-    int test_num;
-    int error_count;
-    
-    // Test configurations: {length, pattern_type, iterations}
+  // Test configurations: {length, pattern_type, iterations}
+  
     typedef struct {
       int unsigned length;
       int pattern_type;
@@ -522,6 +548,12 @@ module axi_hyper_tb
       '{64,    0, 70, "Burst stress: 64B x10 back-to-back"},
       '{128,   0, 70, "Burst stress: 128B x10 back-to-back"}
     };
+    
+  initial begin : proc_sim
+    cpu_axi_driver_t cpu_drv;
+    int poll_cycles;
+    int test_num;
+    int error_count;
     
     // Memory regions for testing
     localparam axi_addr_t SRAM_TEST_BASE  = SRAM_BASE + 32'h0000_0100;
