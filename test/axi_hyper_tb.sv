@@ -1,8 +1,4 @@
-// Copyright 2023 ETH Zurich and University of Bologna.
-// Solderpad Hardware License, Version 0.51, see LICENSE for details.
-// SPDX-License-Identifier: SHL-0.51
-//
-// Luca Valente <luca.valente@unibo.it>
+
 `timescale 1ns/1ps
 
 module axi_hyper_tb
@@ -136,7 +132,7 @@ module axi_hyper_tb
   );
 
   // -----------------------
-  // HyperBus reg bus (keep it)
+  // HyperBus reg bus
   // -----------------------
   REG_BUS #(
     .ADDR_WIDTH ( 8  ),
@@ -145,8 +141,6 @@ module axi_hyper_tb
 
   // -----------------------
   // AXI interfaces
-  //   - master[] (initiators into xbar): ID=6
-  //   - slave[]  (targets behind xbar):  ID=7
   // -----------------------
   AXI_BUS #(
     .AXI_ADDR_WIDTH ( TbAxiAddrWidth ),
@@ -162,7 +156,6 @@ module axi_hyper_tb
     .AXI_USER_WIDTH ( TbAxiUserWidth )
   ) slave  [NumSlaves-1:0] ();
 
-  // DV only for CPU master (port 1): ID=6
   AXI_BUS_DV #(
     .AXI_ADDR_WIDTH ( TbAxiAddrWidth ),
     .AXI_DATA_WIDTH ( TbAxiDataWidth ),
@@ -193,14 +186,12 @@ module axi_hyper_tb
   // -----------------------
   // iDMA wrapper
   // -----------------------
-  // iDMA datapath master into xbar (ID=6)
   xbar_slv_req_t idma_mst_req;
   xbar_slv_rsp_t idma_mst_rsp;
 
   `AXI_ASSIGN_FROM_REQ(master[0], idma_mst_req)
   `AXI_ASSIGN_TO_RESP(idma_mst_rsp, master[0])
 
-  // iDMA regs are a target behind xbar at slave[2] (ID=7)
   xbar_mst_req_t idma_cfg_req;
   xbar_mst_rsp_t idma_cfg_rsp;
 
@@ -210,9 +201,9 @@ module axi_hyper_tb
   cheshire_idma_wrap #(
     .AxiAddrWidth     ( TbAxiAddrWidth ),
     .AxiDataWidth     ( TbAxiDataWidth ),
-    .AxiIdWidth       ( XbarIdWidthSlvPorts ), // datapath side
+    .AxiIdWidth       ( XbarIdWidthSlvPorts ),
     .AxiUserWidth     ( TbAxiUserWidth ),
-    .AxiSlvIdWidth    ( XbarIdWidthMstPorts ), // register (AXI slave) side
+    .AxiSlvIdWidth    ( XbarIdWidthMstPorts ),
     .NumAxInFlight    ( DmaNumAxInFlight ),
     .MemSysDepth      ( DmaMemSysDepth   ),
     .JobFifoDepth     ( DmaJobFifoDepth  ),
@@ -233,7 +224,7 @@ module axi_hyper_tb
   );
 
   // -----------------------
-  // Target 0: SRAM model (ID=7)
+  // Target 0: SRAM model
   // -----------------------
   xbar_mst_req_t sram_req;
   xbar_mst_rsp_t sram_rsp;
@@ -275,7 +266,7 @@ module axi_hyper_tb
   );
 
   // -----------------------
-  // Target 1: HyperBus DUT (ID=7 behind xbar)
+  // Target 1: HyperBus DUT
   // -----------------------
   dut_if #(
     .TbTestTime      ( TbTestTime      ),
@@ -297,8 +288,170 @@ module axi_hyper_tb
     .reg_slv_if ( hyper_reg_bus )
   );
 
+  // ============================================
+  // Debug Monitors
+  // ============================================
+  initial begin
+    forever @(posedge clk) begin
+      if (rst_n) begin
+        // AW channel
+        if (i_dut_if.i_dut.i_axi_slave.axi_req_i.aw_valid && 
+            i_dut_if.i_dut.i_axi_slave.axi_rsp_o.aw_ready) begin
+          $display("[%0t] HYPERBUS_AXI: AW handshake addr=0x%08x id=%0d", 
+                   $time, 
+                   i_dut_if.i_dut.i_axi_slave.axi_req_i.aw.addr,
+                   i_dut_if.i_dut.i_axi_slave.axi_req_i.aw.id);
+        end
+        
+        // AR channel
+        if (i_dut_if.i_dut.i_axi_slave.axi_req_i.ar_valid && 
+            i_dut_if.i_dut.i_axi_slave.axi_rsp_o.ar_ready) begin
+          $display("[%0t] HYPERBUS_AXI: AR handshake addr=0x%08x id=%0d len=%0d size=%0d", 
+                   $time, 
+                   i_dut_if.i_dut.i_axi_slave.axi_req_i.ar.addr,
+                   i_dut_if.i_dut.i_axi_slave.axi_req_i.ar.id,
+                   i_dut_if.i_dut.i_axi_slave.axi_req_i.ar.len,
+                   i_dut_if.i_dut.i_axi_slave.axi_req_i.ar.size);
+        end
+        
+        // W channel
+        if (i_dut_if.i_dut.i_axi_slave.axi_req_i.w_valid && 
+            i_dut_if.i_dut.i_axi_slave.axi_rsp_o.w_ready) begin
+          $display("[%0t] HYPERBUS_AXI: W handshake data=0x%016x last=%0b", 
+                   $time,
+                   i_dut_if.i_dut.i_axi_slave.axi_req_i.w.data,
+                   i_dut_if.i_dut.i_axi_slave.axi_req_i.w.last);
+        end
+        
+        // B channel
+        if (i_dut_if.i_dut.axi_b_valid && i_dut_if.i_dut.axi_b_ready) begin
+          $display("[%0t] HYPERBUS: B response (after CDC) error=%0b", 
+                   $time, i_dut_if.i_dut.axi_b_error);
+        end
+        
+        if (i_dut_if.i_dut.i_axi_slave.axi_rsp_o.b_valid && 
+            i_dut_if.i_dut.i_axi_slave.axi_req_i.b_ready) begin
+          $display("[%0t] HYPERBUS_AXI: B output to master id=%0d resp=%0d", 
+                   $time,
+                   i_dut_if.i_dut.i_axi_slave.axi_rsp_o.b.id,
+                   i_dut_if.i_dut.i_axi_slave.axi_rsp_o.b.resp);
+        end
+        
+        // R channel
+        if (i_dut_if.i_dut.i_axi_slave.axi_rsp_o.r_valid && 
+            i_dut_if.i_dut.i_axi_slave.axi_req_i.r_ready) begin
+          $display("[%0t] HYPERBUS_AXI: R output to master data=0x%016x id=%0d resp=%0d last=%0b", 
+                   $time,
+                   i_dut_if.i_dut.i_axi_slave.axi_rsp_o.r.data,
+                   i_dut_if.i_dut.i_axi_slave.axi_rsp_o.r.id,
+                   i_dut_if.i_dut.i_axi_slave.axi_rsp_o.r.resp,
+                   i_dut_if.i_dut.i_axi_slave.axi_rsp_o.r.last);
+        end
+        
+        // Transaction CDC
+        if (i_dut_if.i_dut.axi_trans_valid && i_dut_if.i_dut.axi_trans_ready) begin
+          $display("[%0t] HYPERBUS: Trans CDC (sys?phy) cs=%0b", 
+                   $time, i_dut_if.i_dut.axi_tf_cdc.cs);
+        end
+        
+        if (i_dut_if.i_dut.phy_trans_valid && i_dut_if.i_dut.phy_trans_ready) begin
+          $display("[%0t] HYPERBUS_PHY: Trans received from CDC", $time);
+        end
+        
+        // PHY B response
+        if (i_dut_if.i_dut.phy_b_valid && i_dut_if.i_dut.phy_b_ready) begin
+          $display("[%0t] HYPERBUS_PHY: B response generated error=%0b", 
+                   $time, i_dut_if.i_dut.phy_b_error);
+        end
+        
+        // TX FIFO
+        if (i_dut_if.i_dut.axi_tx_valid && i_dut_if.i_dut.axi_tx_ready) begin
+          $display("[%0t] HYPERBUS: TX FIFO write (sys?phy) data=0x%08x last=%0b", 
+                   $time, i_dut_if.i_dut.axi_tx.data[15:0], i_dut_if.i_dut.axi_tx.last);
+        end
+        
+        if (i_dut_if.i_dut.phy_tx_valid && i_dut_if.i_dut.phy_tx_ready) begin
+          $display("[%0t] HYPERBUS_PHY: TX data consumed data=0x%08x last=%0b", 
+                   $time, i_dut_if.i_dut.phy_tx.data[15:0], i_dut_if.i_dut.phy_tx.last);
+        end
+        
+        // RX FIFO
+        if (i_dut_if.i_dut.phy_rx_valid && i_dut_if.i_dut.phy_rx_ready) begin
+          $display("[%0t] HYPERBUS_PHY: RX data produced data=0x%08x last=%0b error=%0b", 
+                   $time, 
+                   i_dut_if.i_dut.phy_rx.data[15:0], 
+                   i_dut_if.i_dut.phy_rx.last,
+                   i_dut_if.i_dut.phy_rx.error);
+        end
+        
+        if (i_dut_if.i_dut.axi_rx_valid && i_dut_if.i_dut.axi_rx_ready) begin
+          $display("[%0t] HYPERBUS_AXI: RX data consumed data=0x%08x last=%0b", 
+                   $time, 
+                   i_dut_if.i_dut.axi_rx.data[15:0], 
+                   i_dut_if.i_dut.axi_rx.last);
+        end
+      end
+    end
+  end
+
+  // Watchdog for B response
+  logic [31:0] b_wait_counter;
+  logic        waiting_for_b;
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      b_wait_counter <= 0;
+      waiting_for_b  <= 1'b0;
+    end else begin
+      if (i_dut_if.i_dut.i_axi_slave.axi_req_i.aw_valid && 
+          i_dut_if.i_dut.i_axi_slave.axi_rsp_o.aw_ready) begin
+        waiting_for_b <= 1'b1;
+        b_wait_counter <= 0;
+        $display("[%0t] DEBUG: Started waiting for B response", $time);
+      end
+      
+      if (i_dut_if.i_dut.i_axi_slave.axi_rsp_o.b_valid && 
+          i_dut_if.i_dut.i_axi_slave.axi_req_i.b_ready) begin
+        waiting_for_b <= 1'b0;
+        $display("[%0t] DEBUG: B response received after %0d cycles", 
+                 $time, b_wait_counter);
+      end
+      
+      if (waiting_for_b) begin
+        b_wait_counter <= b_wait_counter + 1;
+        
+        if (b_wait_counter == 100) 
+          $warning("[%0t] Still waiting for B response after 100 cycles", $time);
+        if (b_wait_counter == 500) 
+          $warning("[%0t] Still waiting for B response after 500 cycles", $time);
+        if (b_wait_counter == 1000) 
+          $error("[%0t] B RESPONSE TIMEOUT after 1000 cycles!", $time);
+      end
+    end
+  end
+
+  // Monitor CDC FIFO states
+  always @(posedge clk) begin
+    if (rst_n && $time > 600us) begin
+      if (i_dut_if.i_dut.i_cdc_2phase_b.src_valid_i && 
+          !i_dut_if.i_dut.i_cdc_2phase_b.src_ready_o) begin
+        $display("[%0t] WARNING: B CDC FIFO source side stuck (phy?sys)", $time);
+      end
+      
+      if (i_dut_if.i_dut.i_cdc_fifo_tx.src_valid_i && 
+          !i_dut_if.i_dut.i_cdc_fifo_tx.src_ready_o) begin
+        $display("[%0t] WARNING: TX CDC FIFO stuck (sys?phy)", $time);
+      end
+      
+      if (i_dut_if.i_dut.i_cdc_fifo_rx.src_valid_i && 
+          !i_dut_if.i_dut.i_cdc_fifo_rx.src_ready_o) begin
+        $display("[%0t] WARNING: RX CDC FIFO stuck (phy?sys)", $time);
+      end
+    end
+  end
+
   // -----------------------
-  // CPU AXI driver (ID=6)
+  // CPU AXI driver tasks
   // -----------------------
   typedef axi_test::axi_driver #(
     .AW ( TbAxiAddrWidth ),
@@ -321,7 +474,7 @@ module axi_hyper_tb
     aw.ax_id    = '0;
     aw.ax_addr  = addr;
     aw.ax_len   = 8'd0;
-    aw.ax_size  = 3'd2; // 4 bytes
+    aw.ax_size  = 3'd2;
     aw.ax_burst = axi_pkg::BURST_INCR;
     aw.ax_lock  = '0;
     aw.ax_cache = '0;
@@ -341,7 +494,7 @@ module axi_hyper_tb
 
     drv.recv_b(b);
     if (b.b_resp != axi_pkg::RESP_OKAY)
-      $fatal(1, "CPU write failed: addr=0x%08x resp=%0d", addr, b.b_resp);
+      $fatal(1, "CPU write32 failed: addr=0x%08x resp=%0d", addr, b.b_resp);
   endtask
 
   task automatic cpu_read32(
@@ -355,7 +508,7 @@ module axi_hyper_tb
     ar.ax_id    = '0;
     ar.ax_addr  = addr;
     ar.ax_len   = 8'd0;
-    ar.ax_size  = 3'd2; // 4 bytes
+    ar.ax_size  = 3'd2;
     ar.ax_burst = axi_pkg::BURST_INCR;
     ar.ax_lock  = '0;
     ar.ax_cache = '0;
@@ -368,63 +521,247 @@ module axi_hyper_tb
     drv.recv_r(r);
 
     if (r.r_resp != axi_pkg::RESP_OKAY)
-      $fatal(1, "CPU read failed: addr=0x%08x resp=%0d", addr, r.r_resp);
+      $fatal(1, "CPU read32 failed: addr=0x%08x resp=%0d", addr, r.r_resp);
 
     data = r.r_data[31:0];
   endtask
 
+  task automatic cpu_write64(
+    input  cpu_axi_driver_t drv,
+    input  logic [31:0] addr,
+    input  logic [63:0] data
+  );
+    cpu_axi_driver_t::ax_beat_t aw = new;
+    cpu_axi_driver_t::w_beat_t  w  = new;
+    cpu_axi_driver_t::b_beat_t  b  = new;
+
+    aw.ax_id    = '0;
+    aw.ax_addr  = addr;
+    aw.ax_len   = 8'd0;
+    aw.ax_size  = 3'd3;
+    aw.ax_burst = axi_pkg::BURST_INCR;
+    aw.ax_lock  = '0;
+    aw.ax_cache = '0;
+    aw.ax_prot  = '0;
+    aw.ax_qos   = '0;
+    aw.ax_region= '0;
+    aw.ax_atop  = '0;
+    aw.ax_user  = '0;
+
+    drv.send_aw(aw);
+
+    w.w_data = data;
+    w.w_strb = 8'hFF;
+    w.w_last = 1'b1;
+    w.w_user = '0;
+    drv.send_w(w);
+
+    drv.recv_b(b);
+    if (b.b_resp != axi_pkg::RESP_OKAY)
+      $fatal(1, "CPU write64 failed: addr=0x%08x resp=%0d", addr, b.b_resp);
+  endtask
+
+  task automatic cpu_read64(
+    input  cpu_axi_driver_t drv,
+    input  logic [31:0] addr,
+    output logic [63:0] data
+  );
+    cpu_axi_driver_t::ax_beat_t ar = new;
+    cpu_axi_driver_t::r_beat_t  r  = new;
+
+    ar.ax_id    = '0;
+    ar.ax_addr  = addr;
+    ar.ax_len   = 8'd0;
+    ar.ax_size  = 3'd3;
+    ar.ax_burst = axi_pkg::BURST_INCR;
+    ar.ax_lock  = '0;
+    ar.ax_cache = '0;
+    ar.ax_prot  = '0;
+    ar.ax_qos   = '0;
+    ar.ax_region= '0;
+    ar.ax_user  = '0;
+
+    drv.send_ar(ar);
+    drv.recv_r(r);
+
+    if (r.r_resp != axi_pkg::RESP_OKAY)
+      $fatal(1, "CPU read64 failed: addr=0x%08x resp=%0d", addr, r.r_resp);
+
+    data = r.r_data;
+  endtask
+
   // -----------------------
-  // Test program
+  // Main Test
   // -----------------------
+      logic [63:0] test_read;
+
   initial begin : proc_sim
     cpu_axi_driver_t cpu_drv;
-    logic [31:0] next_id, done_id;
+    logic [31:0] next_id_write, done_id, next_id_read;
     int poll_count;
+    localparam int unsigned TransferLen = 32'h0000_0040;
+    //localparam int unsigned TransferLen = 32'h0000_0008;  // Just 8 bytes (1 beat)
+    localparam axi_addr_t SrcBase       = SRAM_BASE + 32'h0000_0100;
+    localparam axi_addr_t HyperOffset   = 32'h100;
+    localparam axi_addr_t DstBaseWrite  = HYPERRAM_BASE + HyperOffset;
+    localparam axi_addr_t DstBaseRead   = SRAM_BASE + 32'h0000_4000;
+
+    logic [TbAxiDataWidth-1:0] expected_data [0:(TransferLen/(TbAxiDataWidth/8))-1];
+    logic [TbAxiDataWidth-1:0] read_data;
+    int i, beat_idx;
 
     end_of_sim = 1'b0;
-
     cpu_drv = new(cpu_master_dv);
     cpu_drv.reset_master();
-
     @(posedge rst_n);
-    #100ns;
+    
+    $display("[%0t] Waiting for HyperBus PHY initialization (600us)...", $time);
+    #600us;
+    $display("[%0t] PHY initialization complete, starting test", $time);
+    
+    repeat(20) @(posedge clk);
 
     $display("===========================================");
-    $display("=     CPU->iDMA regs + iDMA->xbar test     =");
+    $display("= Bidirectional iDMA test: SRAM <-> HyperRAM =");
     $display("===========================================");
-    $display("SRAM     : 0x%08x - 0x%08x", SRAM_BASE, SRAM_END);
-    $display("HyperRAM : 0x%08x - 0x%08x", HYPERRAM_BASE, HYPERRAM_END);
-    $display("iDMA regs: 0x%08x - 0x%08x", IDMA_BASE, IDMA_END);
-    $display("===========================================\n");
+    
+    // Step 1: Initialize source data
+    $display("Initializing source data in SRAM @ 0x%08x (length %0d bytes)", 
+             SrcBase, TransferLen);
 
-    cpu_write32(cpu_drv, IDMA_BASE + IDMA_SRC_ADDR_OFFSET, SRAM_BASE);
-    cpu_write32(cpu_drv, IDMA_BASE + IDMA_DST_ADDR_OFFSET, HYPERRAM_BASE + 32'h100);
-    cpu_write32(cpu_drv, IDMA_BASE + IDMA_LENGTH_OFFSET,   32'h0000_0040);
-    cpu_write32(cpu_drv, IDMA_BASE + IDMA_CONF,            (32'(1) << 10));
-    //cpu_write32(cpu_drv, IDMA_BASE + IDMA_REPS_2,          32'h0000_0001);
+    foreach (expected_data[k]) expected_data[k] = '0;
+
+    for (i = 0; i < TransferLen; i += 8) begin
+      logic [63:0] beat_data;
+      int beat_index;
+
+      beat_index = i / 8;
+      beat_data = 64'hDEAD_BEEF_CAFE_0000 + beat_index[15:0];
+
+      cpu_write64(cpu_drv, SrcBase + i, beat_data);
+
+      expected_data[beat_index] = beat_data;
+      $display("  Beat %0d @ 0x%08x: wrote 0x%016x", 
+               beat_index, SrcBase + i, beat_data);
+    end
+
+    repeat(10) @(posedge clk);
+
+    // Step 2: DMA SRAM -> HyperRAM (write)
+    $display("\nStarting DMA: SRAM -> HyperRAM (write)");
+    $display("  SRC: 0x%08x", SrcBase);
+    $display("  DST: 0x%08x", DstBaseWrite);
+    $display("  LEN: %0d bytes", TransferLen);
+    
+    cpu_write32(cpu_drv, IDMA_BASE + IDMA_SRC_ADDR_OFFSET, SrcBase);
+    cpu_write32(cpu_drv, IDMA_BASE + IDMA_DST_ADDR_OFFSET, DstBaseWrite);
+    cpu_write32(cpu_drv, IDMA_BASE + IDMA_LENGTH_OFFSET, TransferLen);
     if (DmaConfEnableTwoD) begin
-  cpu_write32(cpu_drv, IDMA_BASE + IDMA_REPS_2, 32'h0000_0001);
-end
-
-    cpu_read32(cpu_drv, IDMA_BASE + IDMA_NEXT_ID_OFFSET, next_id);
-    $display("Transfer started. next_id=%0d", next_id);
+      cpu_write32(cpu_drv, IDMA_BASE + IDMA_REPS_2, 32'h0000_0001);
+    end
+    
+    cpu_read32(cpu_drv, IDMA_BASE + IDMA_NEXT_ID_OFFSET, next_id_write);
+    $display("  Pre-transfer next_id=%0d", next_id_write);
+    
+    cpu_write32(cpu_drv, IDMA_BASE + IDMA_CONF, (32'(1) << 10));
+    
+    cpu_read32(cpu_drv, IDMA_BASE + IDMA_NEXT_ID_OFFSET, next_id_write);
+    $display("  Transfer started. Expected completion ID=%0d", next_id_write);
 
     poll_count = 0;
     do begin
-      #100ns;
+      repeat(10) @(posedge clk);
       cpu_read32(cpu_drv, IDMA_BASE + IDMA_DONE_ID_OFFSET, done_id);
       poll_count++;
-      if ((poll_count % 10) == 0)
-        $display("Polling... count=%0d done_id=%0d", poll_count, done_id);
-    end while ((done_id != next_id) && (poll_count < 1000));
+      if (poll_count % 100 == 0) 
+        $display("  Polling... done_id=%0d (waiting for %0d)", done_id, next_id_write);
+    end while ((done_id != next_id_write) && (poll_count < 2000));
+    
+    if (poll_count >= 2000) $fatal(1, "DMA write transfer timeout");
+    $display("Write transfer complete (done_id=%0d, polls=%0d)", done_id, poll_count);
+    
 
-    if (poll_count >= 1000) $fatal(1, "DMA transfer timeout");
+    repeat(50) @(posedge clk);
+    
+    // Step 2.5: Test direct HyperRAM read
+    $display("\n=== Testing direct HyperRAM read ===");
+    
+    $display("Attempting direct CPU read from HyperRAM @ 0x%08x", DstBaseWrite);
+    cpu_read64(cpu_drv, DstBaseWrite, test_read);
+    $display("Direct HyperRAM read result: 0x%016x (expected 0x%016x)", 
+             test_read, expected_data[0]);
+    
+    if (test_read !== expected_data[0]) begin
+      $error("Direct HyperRAM read failed! Data: expected=0x%016x got=0x%016x", 
+             expected_data[0], test_read);
+    end else begin
+      $display("? Direct HyperRAM read SUCCESS - data was written correctly");
+    end
+    
+    repeat(50) @(posedge clk);
 
-    $display("Transfer complete after %0d polls (done_id=%0d)", poll_count, done_id);
+    // Step 3: DMA HyperRAM -> SRAM (read back)
+    $display("\nStarting DMA: HyperRAM -> SRAM (read back)");
+    $display("  SRC: 0x%08x", DstBaseWrite);
+    $display("  DST: 0x%08x", DstBaseRead);
+    $display("  LEN: %0d bytes", TransferLen);
+    
+    cpu_write32(cpu_drv, IDMA_BASE + IDMA_SRC_ADDR_OFFSET, DstBaseWrite);
+    cpu_write32(cpu_drv, IDMA_BASE + IDMA_DST_ADDR_OFFSET, DstBaseRead);
+    cpu_write32(cpu_drv, IDMA_BASE + IDMA_LENGTH_OFFSET, TransferLen);
+    if (DmaConfEnableTwoD) begin
+      cpu_write32(cpu_drv, IDMA_BASE + IDMA_REPS_2, 32'h0000_0001);
+    end
+    
+    cpu_read32(cpu_drv, IDMA_BASE + IDMA_NEXT_ID_OFFSET, next_id_read);
+    $display("  Pre-transfer next_id=%0d", next_id_read);
+    
+    cpu_write32(cpu_drv, IDMA_BASE + IDMA_CONF, (32'(1) << 10));
+    
+    cpu_read32(cpu_drv, IDMA_BASE + IDMA_NEXT_ID_OFFSET, next_id_read);
+    $display("  Transfer started. Expected completion ID=%0d", next_id_read);
 
-    #1us;
+    poll_count = 0;
+    do begin
+      repeat(10) @(posedge clk);
+      cpu_read32(cpu_drv, IDMA_BASE + IDMA_DONE_ID_OFFSET, done_id);
+      poll_count++;
+      if (poll_count % 100 == 0) 
+        $display("  Polling... done_id=%0d (waiting for %0d)", done_id, next_id_read);
+    end while ((done_id != next_id_read) && (poll_count < 2000));
+    
+    if (poll_count >= 2000) $fatal(1, "DMA read transfer timeout");
+    $display("Read transfer complete (done_id=%0d, polls=%0d)", done_id, poll_count);
+    
+    // CRITICAL FIX: Wait for data to actually propagate to SRAM!
+  $display("Waiting for read data to propagate through DMA pipeline...");
+  repeat(100) @(posedge clk);  // Add sufficient delay
+
+    repeat(20) @(posedge clk);
+
+    // Step 4: Verify data
+    $display("\nVerifying read-back data @ 0x%08x", DstBaseRead);
+    for (beat_idx = 0; beat_idx < TransferLen / (TbAxiDataWidth/8); beat_idx++) begin
+      axi_addr_t beat_addr;
+
+      beat_addr = DstBaseRead + beat_idx * (TbAxiDataWidth/8);
+      
+      cpu_read64(cpu_drv, beat_addr, read_data);
+
+      $display("  Beat %0d @ 0x%08x: expected 0x%016x, got 0x%016x %s",
+               beat_idx, beat_addr, expected_data[beat_idx], read_data,
+               (read_data === expected_data[beat_idx]) ? "PASS" : "FAIL");
+
+      if (read_data !== expected_data[beat_idx]) begin
+        $fatal(1, "Data mismatch at beat %0d", beat_idx);
+      end
+    end
+
+    $display("\n=== Verification PASSED: Bidirectional DMA transfer successful! ===");
+    repeat(100) @(posedge clk);
     end_of_sim = 1'b1;
+    #1us;
     $finish;
   end
 
-endmodule
+endmodule : axi_hyper_tb
