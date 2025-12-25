@@ -17,6 +17,7 @@ dependencies:
   tech_cells_generic:  { git: "https://github.com/pulp-platform/tech_cells_generic.git", version: 0.2.4         }
   register_interface:  { git: "https://github.com/pulp-platform/register_interface.git", version: 0.4.2         }
   iDMA:                { git: "https://github.com/pulp-platform/iDMA.git",               version: 0.6.4         }
+  axi_tmu:             { git: "git@github.com:chaoqun-liang/axi_monitor.git",            rev: "26a960b"         }  
 
 sources:
   files:

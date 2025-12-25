@@ -22,6 +22,15 @@ packages:
       Git: https://github.com/pulp-platform/axi_stream.git
     dependencies:
     - common_cells
+  axi_tmu:
+    revision: 26a960b79900280f558fec1439a8f4f8fc75bb68
+    version: null
+    source:
+      Git: git@github.com:chaoqun-liang/axi_monitor.git
+    dependencies:
+    - axi
+    - common_cells
+    - register_interface
   common_cells:
     revision: 9ca8a7655f741e7dd5736669a20a301325194c28
     version: 1.39.0

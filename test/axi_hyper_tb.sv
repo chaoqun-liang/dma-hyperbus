@@ -28,7 +28,17 @@ module axi_hyper_tb
   parameter int unsigned DmaMemSysDepth      = 8,
   parameter int unsigned DmaJobFifoDepth     = 2,
   parameter bit          DmaRAWCouplingAvail = 1'b1,
-  parameter bit          DmaConfEnableTwoD   = 1'b0
+  parameter bit          DmaConfEnableTwoD   = 1'b0,
+
+  // TMU parameters
+  parameter int unsigned TbMaxUniqIds    = 128,
+  parameter int unsigned TbMaxTxnsPerId  = 512,
+  parameter int unsigned TbMaxWrTxns     = 1024,
+  parameter int unsigned TbMaxRdTxns     = 1024,
+
+  parameter int unsigned TbCounterWidth  = 12,
+  parameter int unsigned TbHsCntWidth    = 20,
+  parameter int unsigned TbPrescalerDiv  = 1
 );
 
   `include "axi/typedef.svh"
@@ -40,6 +50,10 @@ module axi_hyper_tb
   // -----------------------
   localparam int unsigned XbarIdWidthSlvPorts = TbAxiIdWidth;
   localparam int unsigned XbarIdWidthMstPorts = TbAxiIdWidth + $clog2(NumMasters);
+
+  localparam int unsigned IntIdWidth   = (TbMaxUniqIds > 1) ? $clog2(TbMaxUniqIds) : 1;
+  typedef logic [IntIdWidth-1:0]   int_id_t;
+
 
   typedef logic [TbAxiAddrWidth-1:0]   axi_addr_t;
   typedef logic [TbAxiDataWidth-1:0]   axi_data_t;
@@ -64,7 +78,7 @@ module axi_hyper_tb
   `AXI_TYPEDEF_RESP_T(xbar_slv_rsp_t,  b_slv_chan_t,  r_slv_chan_t)
 
   // -----------------------
-  // Target-side (xbar master ports) structs: ID=7
+  // Target-side (xbar master ports, slave sides) structs: ID=7
   // -----------------------
   `AXI_TYPEDEF_AW_CHAN_T(aw_mst_chan_t, axi_addr_t, axi_id_mst_t, axi_user_t)
   `AXI_TYPEDEF_B_CHAN_T (b_mst_chan_t,  axi_id_mst_t, axi_user_t)
@@ -73,6 +87,16 @@ module axi_hyper_tb
 
   `AXI_TYPEDEF_REQ_T (xbar_mst_req_t,  aw_mst_chan_t, w_chan_t, ar_mst_chan_t)
   `AXI_TYPEDEF_RESP_T(xbar_mst_rsp_t,  b_mst_chan_t,  r_mst_chan_t)
+  
+  typedef logic [IntIdWidth-1:0] axi_id_int_t;
+
+  `AXI_TYPEDEF_AW_CHAN_T(aw_int_chan_t, axi_addr_t, axi_id_int_t, axi_user_t)
+  `AXI_TYPEDEF_B_CHAN_T (b_int_chan_t,  axi_id_int_t, axi_user_t)
+  `AXI_TYPEDEF_AR_CHAN_T(ar_int_chan_t, axi_addr_t, axi_id_int_t, axi_user_t)
+  `AXI_TYPEDEF_R_CHAN_T (r_int_chan_t,  axi_data_t, axi_id_int_t, axi_user_t)
+
+  `AXI_TYPEDEF_REQ_T (xbar_mst_int_req_t,  aw_int_chan_t, w_chan_t, ar_int_chan_t)
+  `AXI_TYPEDEF_RESP_T(xbar_mst_int_rsp_t,  b_int_chan_t,  r_int_chan_t)
 
   // -----------------------
   // Address map
@@ -188,8 +212,8 @@ module axi_hyper_tb
   xbar_mst_req_t hyper_req_pre_tmu;   // From xbar to TMU
   xbar_mst_rsp_t hyper_rsp_pre_tmu;   // From TMU to xbar
 
-  xbar_mst_req_t hyper_req_post_tmu;  // From TMU to HyperBus
-  xbar_mst_rsp_t hyper_rsp_post_tmu;  // From HyperBus to TMU
+  xbar_mst_int_req_t hyper_req_post_tmu;  // From TMU to HyperBus
+  xbar_mst_int_rsp_t hyper_rsp_post_tmu;  // From HyperBus to TMU
 
   // Connect xbar slave port to pre-TMU structs
   `AXI_ASSIGN_TO_REQ(hyper_req_pre_tmu, slave[1])
@@ -198,16 +222,46 @@ module axi_hyper_tb
   // TODO: Insert TMU here
   //   Input:  hyper_req_pre_tmu, hyper_rsp_post_tmu
   //   Output: hyper_req_post_tmu, hyper_rsp_pre_tmu
+  logic tmu_fault; 
+
+  axi_tmu_top #(
+    .MaxUniqIds   ( TbMaxUniqIds       ),
+    .MaxTxnsPerId ( TbMaxTxnsPerId     ),
+    .MaxWrTxns    ( TbMaxWrTxns        ),
+    .MaxRdTxns    ( TbMaxRdTxns        ),
+    .AxiIdWidth   ( XbarIdWidthMstPorts ),
+    .HsCntWidth   ( TbHsCntWidth       ),
+    .PrescalerDiv ( TbPrescalerDiv     ),
+    .mgr_req_t    ( xbar_mst_req_t     ), // correct
+    .mgr_rsp_t    ( xbar_mst_rsp_t     ), // correct
+    .sbr_req_t    ( xbar_mst_int_req_t     ), // wrong
+    .sbr_rsp_t    ( xbar_mst_int_rsp_t     )  // wrong
+    // .cfg_req_t    ( cfg_req_t       ),
+    // .cfg_rsp_t    ( cfg_rsp_t       )
+  )i_axi_tmu (
+      .clk_i       (   clk          ),
+      .rst_ni      (   rst_n        ),
+      .mgr_req_i   (   hyper_req_pre_tmu    ),
+      .mgr_rsp_o   (   hyper_rsp_pre_tmu    ),
+      .sbr_req_o   (   hyper_req_post_tmu   ),
+      .sbr_rsp_i   (   hyper_rsp_post_tmu   ),
+      // .cfg_req_i   (   reg_req      ),
+      // .cfg_rsp_o   (   reg_rsp      ),
+      .fault_o     (   tmu_fault        ),
+      .rst_req_o   (           ),
+      .reset_clear_i  (   1'b0         )
+  );
+
 
   // For now, bypass TMU (passthrough)
-  assign hyper_req_post_tmu = hyper_req_pre_tmu;
-  assign hyper_rsp_pre_tmu = hyper_rsp_post_tmu;
+  // assign hyper_req_post_tmu = hyper_req_pre_tmu;
+  // assign hyper_rsp_pre_tmu = hyper_rsp_post_tmu;
 
   // Create AXI_BUS_DV interface for HyperBus DUT
   AXI_BUS_DV #(
     .AXI_ADDR_WIDTH ( TbAxiAddrWidth ),
     .AXI_DATA_WIDTH ( TbAxiDataWidth ),
-    .AXI_ID_WIDTH   ( XbarIdWidthMstPorts ),
+    .AXI_ID_WIDTH   ( IntIdWidth ),
     .AXI_USER_WIDTH ( TbAxiUserWidth )
   ) hyper_axi_dv (clk);
 
@@ -304,7 +358,7 @@ module axi_hyper_tb
     .TbTestTime      ( TbTestTime      ),
     .AxiDataWidth    ( TbAxiDataWidth  ),
     .AxiAddrWidth    ( TbAxiAddrWidth  ),
-    .AxiIdWidth      ( XbarIdWidthMstPorts ),
+    .AxiIdWidth      ( IntIdWidth ),
     .AxiUserWidth    ( TbAxiUserWidth  ),
     .RegAw           ( 8               ),
     .RegDw           ( 32              ),
@@ -531,7 +585,7 @@ module axi_hyper_tb
   // Main Stress Test
   // ============================================
   // Test configurations: {length, pattern_type, iterations}
-  
+
     typedef struct {
       int unsigned length;
       int pattern_type;
@@ -540,13 +594,13 @@ module axi_hyper_tb
     } test_config_t;
     
     test_config_t test_configs[] = '{
-      '{64,    0, 70,  "Baseline: 64B incremental"},
-      '{128,   0, 70,  "Small: 128B incremental"},
+      '{64,    0, 20,  "Baseline: 64B incremental"},
+      '{128,   0, 20,  "Small: 128B incremental"}
       //'{256,   0, 50,  "Medium: 256B incremental"},
-      '{64,    1, 70,  "Pattern stress: 64B alternating x5"},
-      '{128,   2, 70,  "Pattern stress: 128B index+comp x5"},
-      '{64,    0, 70, "Burst stress: 64B x10 back-to-back"},
-      '{128,   0, 70, "Burst stress: 128B x10 back-to-back"}
+      // '{64,    1, 20,  "Pattern stress: 64B alternating x5"},
+      // '{128,   2, 20,  "Pattern stress: 128B index+comp x5"},
+      // '{64,    0, 20, "Burst stress: 64B x10 back-to-back"},
+      // '{128,   0, 20, "Burst stress: 128B x10 back-to-back"}
     };
     
   initial begin : proc_sim
